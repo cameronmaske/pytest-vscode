@@ -2,7 +2,7 @@
 
 ⚠️ This is currently in development (un-published), so most likely won't work. ⚠️
 
-This extensions adds autodisovery and autocomplete support for pytest fixtures to VS Code.
+A VS Code extensions that adds IntelliSense support for pytest fixtures.
 
 ![feature X](demo.gif)
 
