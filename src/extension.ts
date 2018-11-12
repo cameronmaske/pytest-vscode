@@ -1,21 +1,33 @@
 "use strict";
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
 import cp = require("child_process");
-import { parse, shouldSuggest } from "./parse";
-import path = require("path");
+import { parseOutput, shouldSuggest, parseCommand, isTestFile } from "./parse";
 
 export const PYTHON: vscode.DocumentFilter = {
   language: "python",
   scheme: "file"
 };
 
-const fixtureSuggestions = filepath => {
+const generateRunOpts = () => {
+  const pytestCommand = vscode.workspace
+    .getConfiguration("pytest")
+    .get("command");
+  if (pytestCommand) {
+    return parseCommand(pytestCommand.toString());
+  }
+  // TODO: Prompt the user instead of just an error?
+  vscode.window.showErrorMessage(
+    "Please set `pytest.command` in your Workspace Settings, then reload to enable IntelliSense for pytest."
+  );
+};
+
+const fixtureSuggestions = (filepath, cmd, args) => {
   return new Promise<any[]>((resolve, reject) => {
-    // TODO: Make this configurable
-    const args = ["run", "pytest", "-q", "--fixtures", filepath];
-    let p = cp.spawn("pipenv", args, {
+    args = [...args, "-q", "--fixtures"];
+    if (filepath) {
+      args = [...args, filepath];
+    }
+    let p = cp.spawn(cmd, args, {
       cwd: vscode.workspace.rootPath
     });
 
@@ -39,13 +51,22 @@ const fixtureSuggestions = filepath => {
     p.on("close", code => {
       console.log(`Output code ${code}`);
       console.log(stdout, stderr);
-      resolve(parse(stdout));
+      resolve(parseOutput(stdout));
     });
   });
 };
 
 class PytestFixtureCompletionItemProvider
   implements vscode.CompletionItemProvider {
+  opts: {
+    cmd: string;
+    args: string[];
+  };
+
+  constructor() {
+    this.opts = generateRunOpts();
+  }
+
   provideCompletionItems(
     document: vscode.TextDocument,
     position: vscode.Position,
@@ -55,8 +76,8 @@ class PytestFixtureCompletionItemProvider
     let lineText = document.lineAt(position.line).text;
     const testPath = vscode.workspace.asRelativePath(document.fileName);
     if (shouldSuggest(lineText, position.character)) {
-      if (cache[testPath]) {
-        const completions = cache[testPath].map(fixture => {
+      if (CACHE[testPath]) {
+        const completions = CACHE[testPath].map(fixture => {
           let item = new vscode.CompletionItem(
             fixture.name,
             vscode.CompletionItemKind.Variable
@@ -73,18 +94,15 @@ class PytestFixtureCompletionItemProvider
   }
 }
 
-const cache = {};
+const CACHE = {};
 
-const cacheFixtures = document => {
-  if (document.languageId == PYTHON.language) {
-    const testPath = vscode.workspace.asRelativePath(document.fileName);
-    const file = path.parse(testPath).base;
-    console.log(`Loading fixtures for ${testPath}`);
-    if (/test_/.test(file) || /conftest/.test(file)) {
-      fixtureSuggestions(testPath).then(results => {
-        console.log(`Found ${results.length} fixtures`);
-        console.log(results);
-        cache[testPath] = results;
+const cacheFixtures = (document, opts) => {
+  if (document.languageId === PYTHON.language) {
+    const filePath = vscode.workspace.asRelativePath(document.fileName);
+    if (isTestFile(filePath)) {
+      fixtureSuggestions(filePath, opts.cmd, opts.args).then(results => {
+        console.log(`Found ${results.length} fixtures for ${filePath}`);
+        CACHE[filePath] = results;
       });
     }
   }
@@ -93,12 +111,17 @@ const cacheFixtures = document => {
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-  // TODO: Activate on load? Just currently just triggers on change.
-  context.subscriptions.push(
-    vscode.window.onDidChangeActiveTextEditor(editor => {
-      cacheFixtures(editor.document);
-    })
-  );
+  const opts = generateRunOpts();
+  if (opts) {
+    if (vscode.window.activeTextEditor) {
+      cacheFixtures(vscode.window.activeTextEditor.document, opts);
+    }
+    context.subscriptions.push(
+      vscode.window.onDidChangeActiveTextEditor(editor => {
+        cacheFixtures(editor.document, opts);
+      })
+    );
+  }
   context.subscriptions.push(
     vscode.languages.registerCompletionItemProvider(
       PYTHON,

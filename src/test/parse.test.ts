@@ -1,7 +1,7 @@
-import { parse, shouldSuggest } from "../parse";
+import { parseOutput, parseCommand, shouldSuggest } from "../parse";
+import { expect } from "chai";
 
-test("parses pytest fixture ouput", function() {
-  const output = `cache
+const PYTEST_OUTPUT = `cache
     Return a cache object that can persist state between testing sessions.
 
 ------------------------------------------------------- fixtures defined from pytest_django.fixtures -------------------------------------------------------
@@ -15,7 +15,9 @@ fixture_1
 fixture_2
     This is a docstring
 ========================= no tests ran in 0.22 seconds =========================`;
-  expect(parse(output)).toEqual([
+
+test("parses pytest fixture ouput", function() {
+  expect(parseOutput(PYTEST_OUTPUT)).to.deep.equal([
     {
       name: "cache",
       docstring:
@@ -36,10 +38,30 @@ fixture_2
   ]);
 });
 
-test("should test - true", () => {
-  expect(shouldSuggest("def test_example()", 17)).toBe(true);
+test("should suggest, inside brackets", () => {
+  expect(shouldSuggest("def test_example()", 17)).to.equal(true);
 });
 
-test("should test - false", () => {
-  expect(shouldSuggest("def example()", 12)).toBe(false);
+test("should suggest, after first bracket", () => {
+  expect(shouldSuggest("def test_example(", 17)).to.equal(true);
+});
+
+test("should not suggest, cursor before brackets", () => {
+  expect(shouldSuggest("def test_example()", 12)).to.equal(false);
+});
+
+test("should not suggest, cursor after brackets", () => {
+  expect(shouldSuggest("def test_example()", 18)).to.equal(false);
+});
+
+test("should not suggest, not test function", () => {
+  expect(shouldSuggest("def example()", 12)).to.equal(false);
+});
+
+test("should generate commands", () => {
+  const path = "pipenv run pytest";
+  expect(parseCommand(path)).to.deep.equal({
+    cmd: "pipenv",
+    args: ["run", "pytest"]
+  });
 });

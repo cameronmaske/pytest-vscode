@@ -1,11 +1,16 @@
-export const parse = (input: string) => {
-  // This code is horrible, but it's a first pass.
+import path = require("path");
+
+export const parseOutput = (input: string) => {
+  /* 
+  Parse the output from `pytest --fixture` for an array of fixtures and their docstrings.
+  This code is horrible, but it's a first pass.
+  */
   const fixtures = [];
   let data = {};
   let docstring = "";
   for (let line of input.split("\n")) {
     const trimmedLine = line.replace(/^\s+|\s+$/g, "");
-    if (trimmedLine == "") {
+    if (trimmedLine === "") {
       if (docstring.length > 0) {
         docstring += "\n";
       }
@@ -27,7 +32,7 @@ export const parse = (input: string) => {
         docstring = "";
       }
       data["name"] = line;
-    } else if (line == "") {
+    } else if (line === "") {
       if (docstring.length > 0) {
         docstring += "\n";
       }
@@ -45,22 +50,36 @@ export const parse = (input: string) => {
   return fixtures;
 };
 
+export const parseCommand = (value: string) => {
+  const args = value.toString().split(" ");
+  const command = args.shift();
+  return {
+    cmd: command,
+    args: args
+  };
+};
+
 export const shouldSuggest = (
   lineText: string,
   cursorPosition: number
 ): boolean => {
   if (/def test_/.test(lineText)) {
     let lineTillCurrentPosition = lineText.substr(0, cursorPosition);
-    let lineAfterCurrentPosition = lineText.substr(
-      cursorPosition,
-      lineText.length
-    );
+    // let lineAfterCurrentPosition = lineText.substr(
+    //   cursorPosition,
+    //   lineText.length
+    // );
     if (
       lineTillCurrentPosition.indexOf("(") > -1 &&
-      lineAfterCurrentPosition.indexOf(")") > -1
+      lineTillCurrentPosition.indexOf(")") === -1
     ) {
       return true;
     }
   }
   return false;
+};
+
+export const isTestFile = filePath => {
+  const file = path.parse(filePath).base;
+  return /test_/.test(file) || /conftest/.test(file);
 };
