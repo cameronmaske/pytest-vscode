@@ -1,5 +1,4 @@
 import path = require("path");
-import { type } from "os";
 
 export const parseOutput = (input: string) => {
   /* 

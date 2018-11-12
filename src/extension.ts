@@ -13,6 +13,7 @@ const generateRunOpts = () => {
     .getConfiguration("pytest")
     .get("command");
   if (pytestCommand) {
+    // @ts-ignore - XXX: Actually figure out the type casting here.
     return parseCommand(pytestCommand);
   }
   // TODO: Prompt the user instead of just an error?
