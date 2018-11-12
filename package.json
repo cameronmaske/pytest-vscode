@@ -20,7 +20,10 @@
       "title": "Pytest configuration",
       "properties": {
         "pytest.command": {
-          "type": "string",
+          "type": [
+            "string",
+            "array"
+          ],
           "default": "pipenv run pytest",
           "description": "Command to run pytest"
         }

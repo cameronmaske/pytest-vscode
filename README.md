@@ -40,7 +40,15 @@ If you are running pytest instead of Docker compose, your setting might look sim
 
 ```json
 {
-  "pytest.command": "docker-compose run api --no-deps pytest"
+  "pytest.command": [
+    "eval",
+    "$(docker-machine env default);",
+    "docker-compose",
+    "run",
+    "--no-deps",
+    "api",
+    "pytest"
+  ]
 }
 ```
 
