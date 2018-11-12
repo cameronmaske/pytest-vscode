@@ -2,7 +2,7 @@
   "name": "vscode-pytest",
   "displayName": "Pytest IntelliSense",
   "description": "Provides autocompletion for pytest fixtures in VS Code.",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "publisher": "Cameron",
   "engines": {
     "vscode": "^1.28.0"
