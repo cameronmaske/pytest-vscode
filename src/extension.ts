@@ -13,7 +13,8 @@ const generateRunOpts = () => {
     .getConfiguration("pytest")
     .get("command");
   if (pytestCommand) {
-    return parseCommand(pytestCommand.toString());
+    // @ts-ignore - XXX: Actually figure out the type casting here.
+    return parseCommand(pytestCommand);
   }
   // TODO: Prompt the user instead of just an error?
   vscode.window.showErrorMessage(
@@ -28,11 +29,12 @@ const fixtureSuggestions = (filepath, cmd, args) => {
       args = [...args, filepath];
     }
     let p = cp.spawn(cmd, args, {
-      cwd: vscode.workspace.rootPath
+      cwd: vscode.workspace.rootPath,
+      shell: true
     });
 
-    console.log(`Running ${args} in ${vscode.workspace.rootPath}`);
-
+    console.log(`Running ${cmd} : ${args} in ${vscode.workspace.rootPath}`);
+    console.log(args);
     let stdout = "";
     let stderr = "";
 

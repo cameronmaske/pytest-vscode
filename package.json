@@ -2,7 +2,7 @@
   "name": "vscode-pytest",
   "displayName": "Pytest IntelliSense",
   "description": "Provides autocompletion for pytest fixtures in VS Code.",
-  "version": "0.0.1",
+  "version": "0.1.1",
   "publisher": "Cameron",
   "engines": {
     "vscode": "^1.28.0"
@@ -20,7 +20,10 @@
       "title": "Pytest configuration",
       "properties": {
         "pytest.command": {
-          "type": "string",
+          "type": [
+            "string",
+            "array"
+          ],
           "default": "pipenv run pytest",
           "description": "Command to run pytest"
         }

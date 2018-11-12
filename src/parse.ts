@@ -50,13 +50,22 @@ export const parseOutput = (input: string) => {
   return fixtures;
 };
 
-export const parseCommand = (value: string) => {
-  const args = value.toString().split(" ");
-  const command = args.shift();
-  return {
-    cmd: command,
-    args: args
-  };
+export const parseCommand = (value: string | Array<string>) => {
+  if (typeof value === "string") {
+    const args = value.toString().split(" ");
+    const command = args.shift();
+    return {
+      cmd: command,
+      args: args
+    };
+  } else {
+    const args = [...value];
+    const cmd = args.shift();
+    return {
+      cmd: cmd,
+      args: args
+    };
+  }
 };
 
 export const shouldSuggest = (
