@@ -1,4 +1,4 @@
-import { parseOutput, parseCommand, shouldSuggest } from "../parse";
+import { parseOutput, parseCommand, shouldSuggest } from "../../parse";
 import { expect } from "chai";
 
 const PYTEST_OUTPUT = `cache
