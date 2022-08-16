@@ -6,7 +6,7 @@ from pytest_lsp import ClientServerConfig
 import pathlib
 import asyncio
 
-root_path = pathlib.Path(__file__).parent.parent / "workspace"
+ROOT_PATH = pathlib.Path(__file__).parent.parent / "workspace"
 
 
 @pytest.fixture(scope="session")
@@ -21,9 +21,23 @@ def event_loop():
 
 
 @pytest.fixture
-def path_to_uri():
+def root_path():
+    return ROOT_PATH
+
+
+@pytest.fixture
+def path_to_uri(root_path):
     def _(filepath):
         return uri.from_fs_path(str(root_path / filepath))
+
+    return _
+
+
+@pytest.fixture
+def file_contents(root_path):
+    def _(filepath):
+        with open(str(root_path / filepath), mode="r", encoding="utf-8") as _file:
+            return _file.read()
 
     return _
 
@@ -31,7 +45,7 @@ def path_to_uri():
 @pytest_lsp.fixture(
     scope="session",
     config=ClientServerConfig(
-        server_command=[sys.executable, "-m", "pytest_ls"],
+        server_command=[sys.executable, "-m", "pytest_ls", "--cwd", ROOT_PATH],
         root_uri=uri.from_fs_path(str(root_path)),
     ),
 )

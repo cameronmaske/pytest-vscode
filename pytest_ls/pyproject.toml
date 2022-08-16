@@ -9,3 +9,6 @@ filterwarnings = [
     "ignore:'contextfunction' is renamed to 'pass_context',*:DeprecationWarning",
     "ignore:'environmentfilter' is renamed to 'pass_environment',*:DeprecationWarning",
 ]
+
+[tool.isort]
+profile = "black"

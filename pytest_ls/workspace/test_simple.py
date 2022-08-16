@@ -13,3 +13,8 @@ def fuzz_in_file() -> bool:
 
 def test_autocomplete():
     pass
+
+
+class TestAutocomplete:
+    def test_foo():
+        pass

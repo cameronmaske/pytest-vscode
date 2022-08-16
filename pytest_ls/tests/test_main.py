@@ -1,6 +1,5 @@
 import pytest
 from pytest_lsp import Client
-from loguru import logger
 
 from pygls.lsp.types import (
     CompletionList,
@@ -12,9 +11,17 @@ import pygls.uris as Uri
 async def completion_request(
     client: Client, test_uri: str, text: str, line: int, column: int = None
 ) -> CompletionList:
-    """
-    line: Mirror's vscode (incremented from 1 as opposed as 0)
-    column: Mirr's vscode (incremented from 1 as opposed as 0)
+    """_summary_
+
+    Args:
+        client (Client): _description_
+        test_uri (str): _description_
+        text (str): _description_
+        line (int): Mirror's vscode (incremented from 1 as opposed as 0)
+        column (int, optional): Mirror's vscode (incremented from 1 as opposed as 0)
+
+    Returns:
+        CompletionList: _description_
     """
     filepath = Path(Uri.to_fs_path(test_uri))
     extension = filepath.suffix
@@ -23,10 +30,9 @@ async def completion_request(
 
     # Open the file and pass contents
     with open(filepath, mode="r", encoding="utf-8") as _file:
-        print("read")
         client.notify_did_open(test_uri, lang_id, _file.read())
 
-    response = await client.completion_request(test_uri, line - 1, column - 1)
+    response = await client.completion_request(test_uri, line, column)
 
     client.notify_did_close(test_uri)
     return response
@@ -36,6 +42,6 @@ async def completion_request(
 async def test_completion(client: Client, path_to_uri):
     test_uri = path_to_uri("test_simple.py")
 
-    result = await completion_request(client, test_uri, line=14, column=32, text="fo")
+    result = await completion_request(client, test_uri, line=14, column=23, text="fo")
 
     assert len(result.items) > 0
